@@ -2,39 +2,47 @@
 // require('dotenv').config({path: './env'})
 import dotenv from "dotenv"
 
- 
+import express from 'express'
 import connectDB from "./db/index.js";
+import { app } from "./app.js";
+
+
 
 dotenv.config({
     path: './env'
 })
 
-
+// connectDB() is an async method whenever an async method gets completed
+// it returns a promise so we can use .then() and .catch()
 connectDB()
+.then(()=>{
+    app.on("error", (err)=>{
+        console.log(err)
+    })
 
-// following is a way to connect our app to database.
-/*
-import express from "express"
+    app.listen(process.env.PORT || 3000, ()=>{
+        console.log(`server listening on port ${process.env.PORT}`)
+    })
+})
+.catch((err)=>{
+    console.log(`MongoDB connection failed: ${err}`)
+})
 
-const app = express()
-// following approach is called IIFE - immediately invoked function expression.
-;( async ()=>{
-    try {
-        await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
-        // following event listener is for error in case our database is connected successfully
-        // but still our server is not able to communcate to it.
-        app.on("error", (error)=>{
-            console.log("ERROR:->" , error)
-            throw error
-        })
+// follwing is the code for database connection
 
-        app.listen(process.env.PORT, ()=>{
-            console.log(`app is listening on port ${process.env.PORT}`)
-        })
+// ;(async () => {
+//     try {
+//        await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`) 
+//        app.on("error", (error)=>{
+//         console.log("ERROR: ", error)
+//         throw error
+//        })
 
-    } catch (error) {
-        console.error(`ERROR: ${error}`)
-        throw error
-    }
-})()
-*/
+//        app.listen(process.env.PORT, ()=>{
+//         console.log(`app is listening on port: ${process.env.PORT}`)
+//        })
+//     } catch (error) {
+//         console.error(error)
+//         throw error;
+//     }
+// })()
