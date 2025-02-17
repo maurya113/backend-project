@@ -15,6 +15,7 @@ app.use(express.json({
 }))
 app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
+// all the static files are stored in public folder
 app.use(cookieParser())
 // cookieParser is used to access the cookies of user and 
 // perform CRUD operation on cookies

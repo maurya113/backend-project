@@ -12,7 +12,7 @@ const connectDB = async ()=>{
         console.log(`\n MongoDB connected! DB HOST: ${connectioInstance.connection.host}`)
         // above line is used only to ensure whether I'm connected to right database.
     } catch (error) {
-        console.error("mongoDB CONNECTION FAILED: ", error)
+        console.error("mongoDB CONNECTION failed: ", error)
         // our current applicaion must be running on a process
         // this process is a reference of that process
         // node has different exit codes like 1,2.. etc
@@ -23,3 +23,4 @@ const connectDB = async ()=>{
 
 
 export default connectDB;
+
