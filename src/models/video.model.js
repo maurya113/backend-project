@@ -37,7 +37,7 @@ const videoSchema = new mongoose.Schema({
 
 },{timestamps: true})
 
-videoSchema.plugin(mongooseAggregatePaginate)
+ 
 // aggregation queries are used for filtering, grouping or sorting complex data.
 // watch history needs aggregation queries
 
