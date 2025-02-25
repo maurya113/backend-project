@@ -2,6 +2,7 @@ import express from 'express'
 import cors from "cors"
 import cookieParser from "cookie-parser"
 
+
 const app = express()
 
 app.use(cors({
@@ -20,4 +21,13 @@ app.use(cookieParser())
 // cookieParser is used to access the cookies of user and 
 // perform CRUD operation on cookies
 
-export {app}
+//ROUTES import
+import userRouter from "./routes/user.routes.js"
+
+//ROUTES declaration
+//we can not use app.get here beacause we have delcared router in a different file
+//so we will need to use a middleware hence we'll use ( app.use )
+app.use("/api/v1/users", userRouter)
+
+
+export {app} 
