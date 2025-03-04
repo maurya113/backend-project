@@ -97,3 +97,12 @@ userSchema.methods.generateRefreshToken = function(){
 }
 
 export const User = mongoose.model("User", userSchema)
+
+/* accesstokens are shortlived and refereshtokens are long lived it 
+when access token is expired, refresh token creates another accesstoken
+automatically
+once a user hits an endpoint after that even if the accesstoken is expired
+it is again created using refresh token
+refresh token is stored in database and is also provided to user, if both 
+the tokens match then only access token is recreated.
+*/ 

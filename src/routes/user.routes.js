@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
+import { loginUser, logoutUser, registerUser, refreshAccessToken } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -20,6 +21,18 @@ router.route("/register").post(
     ]),
     registerUser
 )
+
+router.route("/login").post(loginUser)
+
+//secured routes
+router.route("/logout").post(verifyJWT, logoutUser)
+/* verifyJWT method adds the user to the req.user and now we have access to the user through req.user inside logoutUser method. */ 
+
+// we can add as many middlewares as we want
+
+router.route("/refresh-token").post(refreshAccessToken)
+
+
 //this is same as - app.post("/register", async(req, res, next) => {})
 // so the async fn. is created in controller and directly passed here.
 
