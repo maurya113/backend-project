@@ -1,0 +1,35 @@
+[
+  {
+    "_id": "6600a1b2c3d4e5f678901222",
+    "username": "john_doe",
+    "subscribers": [
+      {
+        "_id": "6610b2c3d4e5f678901333",
+        "subscriber": "6600a1b2c3d4e5f678901111",
+        "channel": "6600a1b2c3d4e5f678901222"
+      },
+      {
+        "_id": "6610b2c3d4e5f678901334",
+        "subscriber": "6600a1b2c3d4e5f678901444",
+        "channel": "6600a1b2c3d4e5f678901222"
+      }
+    ],
+    "subscribedTo": [
+      {
+        "_id": "6620b2c3d4e5f678901555",
+        "subscriber": "6600a1b2c3d4e5f678901222",
+        "channel": "6600a1b2c3d4e5f678901666"
+      },
+      {
+        "_id": "6620b2c3d4e5f678901556",
+        "subscriber": "6600a1b2c3d4e5f678901222",
+        "channel": "6600a1b2c3d4e5f678901777"
+      },
+      {
+        "_id": "6620b2c3d4e5f678901557",
+        "subscriber": "6600a1b2c3d4e5f678901222",
+        "channel": "6600a1b2c3d4e5f678901888"
+      }
+    ]
+  }
+]

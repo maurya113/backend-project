@@ -21,6 +21,8 @@ router.route("/register").post(
     ]),
     registerUser
 )
+//this is same as - app.post("/register", async(req, res, next) => {})
+// so the async fn. is created in controller and directly passed here.
 
 router.route("/login").post(loginUser)
 
@@ -33,8 +35,8 @@ router.route("/logout").post(verifyJWT, logoutUser)
 router.route("/refresh-token").post(refreshAccessToken)
 
 
-//this is same as - app.post("/register", async(req, res, next) => {})
-// so the async fn. is created in controller and directly passed here.
+
+
 
 export default router;
 

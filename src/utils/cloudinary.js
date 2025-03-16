@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs"; //fs stands for file system, provided by node itself
+import { ApiError } from "./ApiError.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -28,6 +29,23 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
+const deleteFromClodinary = async (publicId) => {
+    try{
+        if(!publicId){
+            throw new ApiError(400, "public id is required while deleting the image from cloud")
+        }
+
+        const response = await cloudinary.uploader.destroy(publicId)
+        console.log("clodinary's avatar image delete response: ", response)
+
+        return response
+
+    }catch(error){
+        console.log("error while deleting the file from cloudinary")
+        return null;
+    }
+}
+
 // multer first saves the file in the public directory and then uploader.upload method of 
 // cloudinary is used to store the file on cloudinary 
 // and in case the file is not uploaded on the cloudinary then it is removed from the public
@@ -36,7 +54,7 @@ const uploadOnCloudinary = async (localFilePath) => {
 // it should be done right now and without that we won't proceed futher.
 
 
-export {uploadOnCloudinary}
+export {uploadOnCloudinary, deleteFromClodinary}
 
 
 // const uploadResult = await cloudinary.uploader

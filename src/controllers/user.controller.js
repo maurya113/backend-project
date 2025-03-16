@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteFromClodinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
@@ -251,7 +251,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
           200,
           {
             accessToken,
-            newRefreshToken,
+            refreshToken: newRefreshToken,
           },
           "Access token refreshed"
         )
@@ -259,9 +259,213 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new ApiError(401, error?.message || "invalid refresh token")
   }
+
+  // asyncHandler will catch the error but it won't allow us to generate the custom error msg.
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changeCurrentPassword = asyncHandler(async(req, res)=>{
+  const {oldPassword, newPassword} = req.body
+   
+  const user = req.user  //if got any error check this line
+  const isPasswordCorrect = await user.isPasswordcorrect(oldPassword)
+
+  if(!isPasswordCorrect){
+    throw new ApiError(400, "invalid old password")
+  }
+
+  user.password = newPassword
+  await user.save({validateBeforeSave: false})
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200, {}, "password changed successfully"))
+})
+
+const getCurrentUser = asyncHandler(async(req, res) => {
+  return res
+  .status(200)
+  .json(new ApiResponse(200, req.user, "current user fetched successfully"))
+})
+
+const updateAccountDetails = asyncHandler(async(req, res)=> {
+  const {fullname, email} = req.body
+
+  if(!fullname || !email){
+    throw new ApiError(400, "all fields are required")
+  }
+
+ const user = await User.findByIdAndUpdate(
+  req.user?._id,
+  {
+    $set:{
+      fullname: fullname,
+      email: email
+    }
+  },
+  {new: true}
+
+).select("-password")
+
+return res
+.status(200)
+.json(new ApiResponse(200, {user}, "account details updated successfully"))
+})
+
+const updateUserAvatar = asyncHandler(async(req, res) => {
+  const avatarLocalPath = req.file?.path
+  // don't need to specify name because only one file is getting uploaded
+
+  if(!avatarLocalPath){
+    throw new ApiError(400,"avatar file is missing")
+  } 
+
+  const user1 = await User.findById(req.user?._id)
+  if(user1.avatar){
+    const publicId = user1.avatar.split('/').pop().split('.')[0];
+    await deleteFromClodinary(publicId)
+  } // this is used to delete from cloudinary
+
+  const avatar = await uploadOnCloudinary(avatarLocalPath)
+
+  if(!avatar.url){
+    throw new ApiError(400, "Error while uploading on avatar")
+  }
+
+  const user = await User.findByIdAndUpdate(req.user._id,
+    {
+      $set:{
+        avatar: avatar.url
+      }
+    },
+    {new: true}
+  ).select("-password")
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200, {user}, "avatar updated successfully"))
+
+})
+
+
+const updateUserCoverImage = asyncHandler(async(req, res) => {
+  const coverImageLocalPath = req.file?.path
+  // don't need to specify name because only one file is getting uploaded
+
+  if(!coverImageLocalPath){
+    throw new ApiError(400,"Cover Image file is missing")
+  } 
+
+  const user1 = await User.findById(req.user?._id)
+  if(user1.coverImage){
+    const publicId = user1.coverImage.split('/').pop().split('.')[0]
+    await deleteFromClodinary(publicId)
+  }
+
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+
+  if(!coverImage.url){
+    throw new ApiError(400, "Error while uploading on cover image")
+  }
+
+  const user = await User.findByIdAndUpdate(req.user._id,
+    {
+      $set:{
+        coverImage: coverImage.url
+      }
+    },
+    {new: true}
+  ).select("-password")
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200, {user}, "cover image updated successfully"))
+
+})
+
+const getUserChannelProfile = asyncHandler(async(req, res) => {
+  const {username} = req.params //we are extracting the username from URL
+
+  if(!username?.trim()){ //trim() makes sure that username is not just empty spacess
+    throw new ApiError(400, "username is missing")
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match:{
+        username: username?.toLowerCase() //user model ke pass jo username hai usko match karo is username se jo hamko mil rha hai url ke through
+      }
+    },
+    {
+      $lookup:{
+        from:"subscriptions",
+        localField:"_id",
+        foreignField:"channel", // channel holds the objectId(the id of the user)
+        as:"subscribers"
+      }
+    },
+    {
+      $lookup:{
+        from:"subscriptions",
+        localField:"_id",
+        foreignField:"subscriber",
+        as:"subscribedTo"
+      }
+    },
+    {
+      $addFields:{
+        subscribersCount:{
+          $size: "$subscribers"
+        },
+        channelsSubscirbedToCount:{
+          $size: "subscribedTo"
+        },
+        isSubscribed:{
+          $cond:{
+            if:{$in:[req.user?._id, "$subscribers.$subscriber"]},
+            // this checks that - jo user currently login hai uska i'd subscribers ke list mei hai ya nahi hai.
+            then: true,
+            else: false
+          }
+        }  
+      }
+    },
+    {
+      $project:{
+        fullname:1,
+        username:1,
+        subscribersCount:1,
+        channelsSubscirbedToCount:1,
+        isSubscribed:1,
+        avatar:1,
+        coverImage:1,
+        email:1
+      }
+    }
+  ])
+
+  if (!channel?.length) {
+    throw new ApiError(404, "channel does not exist")
+  }
+
+  return res
+  .status(200)
+  .json(
+    new ApiResponse(200, channel[0], "user channel fetched successfully")
+  )
+})
+
+export { 
+  registerUser,
+  loginUser, 
+  logoutUser, 
+  refreshAccessToken, 
+  changeCurrentPassword, 
+  getCurrentUser, 
+  updateAccountDetails,
+  updateUserAvatar, 
+  updateUserCoverImage,
+  getUserChannelProfile
+};
 
 // Let’s walk through the flow when a request hits {/register"::
 
